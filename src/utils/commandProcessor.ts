@@ -1,20 +1,20 @@
 export class CommandProcessor {
   static async processCommand(command: string): Promise<string> {
-    const normalizedCommand = command.toLowerCase().trim();
+    const normalized = command.toLowerCase().trim();
 
-    // Time commands
-    if (normalizedCommand.includes('time') || normalizedCommand.includes('clock')) {
+    // Time
+    if (this.includesAny(normalized, ['time', 'clock'])) {
       const now = new Date();
       const timeString = now.toLocaleTimeString('en-US', {
         hour12: true,
         hour: '2-digit',
         minute: '2-digit'
       });
-      return `The current time is ${timeString}.`;
+      return `It's currently ${timeString}. Need anything else?`;
     }
 
-    // Date commands
-    if (normalizedCommand.includes('date') || normalizedCommand.includes('day') || normalizedCommand.includes('today')) {
+    // Date
+    if (this.includesAny(normalized, ['date', 'day', 'today'])) {
       const now = new Date();
       const dateString = now.toLocaleDateString('en-US', {
         weekday: 'long',
@@ -22,80 +22,101 @@ export class CommandProcessor {
         month: 'long',
         day: 'numeric'
       });
-      return `Today is ${dateString}.`;
+      return `Today is ${dateString}. Hope you're having a good one!`;
     }
 
     // Open YouTube
-    if (normalizedCommand.includes('open youtube') || normalizedCommand.includes('youtube')) {
+    if (this.includesAll(normalized, ['open', 'youtube'])) {
       window.open('https://www.youtube.com', '_blank');
-      return 'Opening YouTube in a new tab.';
+      return 'Taking you to YouTube. Enjoy!';
     }
 
     // Open Google
-    if (normalizedCommand.includes('open google') || (normalizedCommand.includes('google') && normalizedCommand.includes('open'))) {
+    if (this.includesAll(normalized, ['open', 'google'])) {
       window.open('https://www.google.com', '_blank');
-      return 'Opening Google in a new tab.';
+      return 'Google is opening now.';
     }
 
-    // Search commands
-    if (normalizedCommand.includes('search for') || normalizedCommand.includes('look up')) {
-      const searchTermMatch = normalizedCommand.match(/(?:search for|look up)\s+(.+)/);
-      if (searchTermMatch) {
-        const searchTerm = searchTermMatch[1];
-        try {
-          const response = await this.searchWikipedia(searchTerm);
-          return response;
-        } catch (error) {
-          return `I couldn't find information about "${searchTerm}" right now. Let me open a Google search instead.`;
-        }
+    // Search
+    if (this.includesAny(normalized, ['search for', 'look up'])) {
+      const match = normalized.match(/(?:search for|look up)\s+(.+)/);
+      if (match && match[1]) {
+        const topic = match[1];
+        return await this.searchWikipedia(topic);
+      } else {
+        return "What would you like me to search for?";
       }
     }
 
-    // Weather (basic response since we don't have an API)
-    if (normalizedCommand.includes('weather')) {
-      return "I don't have access to current weather data yet. You can check the weather by saying 'Open Google' and searching for weather.";
+    // Weather (placeholder)
+    if (normalized.includes('weather')) {
+      return "I'm still learning to read the weather. For now, try saying 'open Google' and check it there.";
     }
 
-    // Help command
-    if (normalizedCommand.includes('help') || normalizedCommand.includes('commands')) {
-      return `I can help you with these commands:
-      • "What time is it?" - Get current time
-      • "What day is it?" - Get current date
-      • "Open YouTube" - Open YouTube
-      • "Open Google" - Open Google
-      • "Search for [topic]" - Search Wikipedia
-      • "Help" - Show this message`;
+    // Joke
+    if (normalized.includes('joke')) {
+      const jokes = [
+        "Why did the developer go broke? Because he used up all his cache.",
+        "Why don’t skeletons fight each other? They don’t have the guts.",
+        "What do you call fake spaghetti? An impasta."
+      ];
+      return jokes[Math.floor(Math.random() * jokes.length)];
     }
 
-    // Default response for unrecognized commands
-    return `I'm not sure how to handle that command. Try saying "help" to see what I can do.`;
+    // Greetings
+    if (this.includesAny(normalized, ['hi', 'hello', 'hey'])) {
+      return "Hey there! I'm your assistant. What can I help you with?";
+    }
+
+    if (normalized.includes('how are you')) {
+      return "I’m doing great, thanks for asking! How about you?";
+    }
+
+    if (normalized.includes('goodbye') || normalized.includes('bye')) {
+      return "Goodbye! I'm always here if you need anything.";
+    }
+
+    // Help
+    if (this.includesAny(normalized, ['help', 'commands'])) {
+      return `Here's what I can do for you:
+      • "What time is it?" – current time
+      • "What day is it?" – today's date
+      • "Open YouTube" – launch YouTube
+      • "Open Google" – launch Google
+      • "Search for [topic]" – search Wikipedia
+      • "Tell me a joke" – fun joke
+      • "Hi / Bye / How are you?" – basic chat`;
+    }
+
+    // Unknown
+    return `Hmm, I didn’t catch that. Try saying “help” to see what I can do.`;
+  }
+
+  private static includesAny(text: string, keywords: string[]): boolean {
+    return keywords.some(keyword => text.includes(keyword));
+  }
+
+  private static includesAll(text: string, keywords: string[]): boolean {
+    return keywords.every(keyword => text.includes(keyword));
   }
 
   private static async searchWikipedia(query: string): Promise<string> {
     try {
-      const response = await fetch(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Wikipedia search failed');
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('Failed');
+
+      const data = await res.json();
+      const summary = data.extract || null;
+
+      if (summary) {
+        const trimmed = summary.length > 200 ? summary.slice(0, 200) + '...' : summary;
+        return `Here’s what I found about ${query}: ${trimmed}`;
       }
-      
-      const data = await response.json();
-      
-      if (data.extract) {
-        // Limit the response to first 200 characters for speech
-        const summary = data.extract.length > 200 
-          ? data.extract.substring(0, 200) + '...' 
-          : data.extract;
-        return `Here's what I found about ${query}: ${summary}`;
-      } else {
-        throw new Error('No content found');
-      }
-    } catch (error) {
-      // Fallback to Google search
+
+      throw new Error('No summary found');
+    } catch {
       window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-      return `I couldn't access Wikipedia, but I've opened a Google search for "${query}".`;
+      return `I couldn’t fetch Wikipedia, but I opened a Google search for "${query}".`;
     }
   }
 }
