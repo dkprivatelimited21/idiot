@@ -62,12 +62,10 @@ utterance.lang = "en-US"; // English (US) voice
   <Clock />
   <Weather />
 </div>
-
-
-
-
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-40 pb-28 max-w-4xl">
+      <div className="relative z-10 container mx-auto px-4 pt-16 pb-20 max-w-4xl">
+
+
 
         {/* Header */}
         <div className="text-center mb-12">
