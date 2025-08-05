@@ -56,20 +56,16 @@ const Index = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-jarvis-dark via-background to-jarvis-dark opacity-50" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_hsl(var(--primary)/0.1)_0%,_transparent_50%)]" />
 
-      <header className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+     <div className="flex justify-between items-start mb-8 px-4">
   <Clock />
-  <div className="text-center">
-    <h1 className="text-2xl font-bold text-white">I.D.I.O.T</h1>
-    <p className="text-sm text-gray-400 italic">
-      I Don’t Obey Orders Instantly Or Thoughtlessly.
-    </p>
-  </div>
   <Weather />
-</header>
+</div>
+
+
 
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-48 pb-28 max-w-4xl">
+      <div className="relative z-10 container mx-auto px-4 pt-40 pb-28 max-w-4xl">
 
         {/* Header */}
         <div className="text-center mb-12">
@@ -95,9 +91,10 @@ const Index = () => {
       </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 py-2 bg-black border-t border-gray-700 text-center z-30">
-        <p className="text-xs text-gray-400">© dkprivatelimited@21</p>
-      </footer>
+     <footer className="mt-16 py-4 text-center text-gray-400 text-sm">
+  © dkprivatelimited@21
+</footer>
+
     </div>
   );
 };
