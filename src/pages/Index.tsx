@@ -56,16 +56,21 @@ const Index = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-jarvis-dark via-background to-jarvis-dark opacity-50" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,_hsl(var(--primary)/0.1)_0%,_transparent_50%)]" />
 
-      {/* Top Fixed Components */}
-      <div className="fixed top-6 left-6 z-20">
-        <Clock />
-      </div>
-      <div className="fixed top-6 right-6 z-20">
-        <Weather />
-      </div>
+      <header className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+  <Clock />
+  <div className="text-center">
+    <h1 className="text-2xl font-bold text-white">I.D.I.O.T</h1>
+    <p className="text-sm text-gray-400 italic">
+      I Don’t Obey Orders Instantly Or Thoughtlessly.
+    </p>
+  </div>
+  <Weather />
+</header>
+
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-32 pb-28 max-w-4xl">
+      <div className="relative z-10 container mx-auto px-4 pt-48 pb-28 max-w-4xl">
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2">
