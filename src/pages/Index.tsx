@@ -35,8 +35,10 @@ const Index = () => {
 
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(response);
-        utterance.rate = 0.9;
-        utterance.pitch = 0.8;
+utterance.rate = 1.3; // 🔼 Speed: default is 1.0 — try 1.3 to 1.5
+utterance.pitch = 1.0; // Normal pitch (or 1.1 for energetic tone)
+utterance.volume = 1;  // Full volume
+utterance.lang = "en-US"; // English (US) voice
         speechSynthesis.speak(utterance);
       }
     } catch (error) {
