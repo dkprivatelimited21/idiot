@@ -96,8 +96,9 @@ const Index = () => {
  {/* Command Log */}
         <CommandLog entries={commandLog} />
 
+
         {/* Command Input */}
-        <div className="mb-8">
+        <div className="mt-6"> {/* mt-6 = margin-top for spacing */}
           <CommandInput
             onCommand={handleCommand}
             isListening={isListening}
