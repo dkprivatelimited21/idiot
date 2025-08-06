@@ -1,27 +1,45 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
+import { initializeAuth } from './api';
+import { SpeechSynthesizer } from './utils/speech';
 
-const queryClient = new QueryClient();
+// Initialize critical services before app renders
+function initializeServices() {
+  // 1. Set up authentication tokens from storage
+  initializeAuth();
+  
+  // 2. Preload speech synthesizer voices
+  SpeechSynthesizer.getInstance().loadVoices();
+  
+  // 3. Set up error tracking (example with console)
+  if (process.env.NODE_ENV === 'production') {
+    window.onerror = (message, source, lineno, colno, error) => {
+      console.error('Global error:', { message, source, lineno, error });
+      // In production, you'd send this to an error tracking service
+    };
+  }
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+// Initialize services before rendering
+initializeServices();
 
-export default App;
+// Create root and render app
+const container = document.getElementById('root');
+if (!container) throw new Error('Failed to find the root element');
+
+const root = createRoot(container);
+root.render(<App />);
+
+// Register service worker in production
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('ServiceWorker registration successful');
+      })
+      .catch(err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+  });
+}

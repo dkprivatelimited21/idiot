@@ -23,6 +23,27 @@ const Index = () => {
   const learningProcessor = useRef(new LearningProcessor());
   const synthesizer = useRef(SpeechSynthesizer.getInstance());
   const logEndRef = useRef<HTMLDivElement>(null);
+const [authToken, setAuthToken] = useState<string | null>(null);
+const [showAuthModal, setShowAuthModal] = useState(false);
+
+// Add this useEffect to check for existing token
+useEffect(() => {
+  const token = localStorage.getItem('jarvis_token');
+  if (token) {
+    setAuthToken(token);
+    learningProcessor.current.setAuthToken(token);
+  }
+}, []);
+
+useEffect(() => {
+  if (authToken) {
+    learningProcessor.current.setAuthToken(authToken);
+  }
+}, [authToken]);
+
+
+
+
 
   // Initialize with welcome message
   useEffect(() => {
@@ -54,29 +75,44 @@ const Index = () => {
     setCommandLog(prev => [...prev, entry]);
   };
 
-  const handleCommand = async (command: string) => {
-    addLogEntry('user', command);
-    setIsProcessing(true);
-    
-    try {
-      const { text, speech } = await learningProcessor.current.process(command);
-      addLogEntry('assistant', text, command);
-      
-      // Speak the response
-      synthesizer.current.speak(speech || text, {
-        rate: 1.1,
-        pitch: 0.9,
-        voice: 'Google US English'
-      });
-    } catch (error) {
-      const errorMessage = "I encountered an error processing that command.";
-      addLogEntry('assistant', errorMessage);
-      synthesizer.current.speak(errorMessage);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+// Add this function
+const handleAuthSuccess = (token: string) => {
+  localStorage.setItem('jarvis_token', token);
+  setAuthToken(token);
+  setShowAuthModal(false);
+  addLogEntry('assistant', "Authentication successful. Memory persistence enabled.");
+};
 
+  const handleCommand = async (command: string) => {
+  addLogEntry('user', command);
+  setIsProcessing(true);
+  
+  try {
+    const { text, speech } = await learningProcessor.current.process(command);
+    addLogEntry('assistant', text, command);
+    
+    // Speak the response
+    synthesizer.current.speak(speech || text, {
+      rate: 1.1,
+      pitch: 0.9,
+      voice: 'Google US English'
+    });
+
+    // Add visual feedback for backend errors
+  } catch (error: any) {
+    const errorMessage = error.message || "I encountered an error processing that command.";
+    addLogEntry('assistant', errorMessage);
+    synthesizer.current.speak(errorMessage);
+    
+    if (error.message.includes('authentication')) {
+      // Prompt user to login if auth error
+      localStorage.removeItem('jarvis_token');
+      setAuthToken(null);
+    }
+  } finally {
+    setIsProcessing(false);
+  }
+};
   const handleFeedback = (entryId: string, correct: boolean) => {
     const entry = commandLog.find(e => e.id === entryId);
     if (!entry || !entry.userInput) return;
@@ -205,6 +241,11 @@ const Index = () => {
             <span>JARVIS v2.1 - {isProcessing ? 'Processing' : 'Active'}</span>
           </div>
         </footer>
+<AuthModal 
+  open={showAuthModal}
+  onClose={() => setShowAuthModal(false)}
+  onAuthSuccess={handleAuthSuccess}
+/>
       </div>
     </div>
   );
