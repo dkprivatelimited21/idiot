@@ -26,10 +26,12 @@ export const CommandInput = ({ onCommand, isListening, setIsListening }: Command
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputValue(transcript);
-        setIsListening(false);
-      };
+  const transcript = event.results[0][0].transcript;
+  setInputValue('');
+  onCommand(transcript.trim()); // 🔥 Execute directly
+  setIsListening(false);
+};
+
 
       recognitionRef.current.onerror = () => {
         setIsListening(false);

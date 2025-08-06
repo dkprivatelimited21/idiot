@@ -33,19 +33,30 @@ const Index = () => {
       const response = await CommandProcessor.processCommand(command);
       addLogEntry('assistant', response);
 
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(response);
-utterance.rate = 1.3; // 🔼 Speed: default is 1.0 — try 1.3 to 1.5
-utterance.pitch = 1.0; // Normal pitch (or 1.1 for energetic tone)
-utterance.volume = 1;  // Full volume
-utterance.lang = "en-US"; // English (US) voice
-        speechSynthesis.speak(utterance);
-      }
-    } catch (error) {
-      const errorMessage = "I encountered an error processing that command.";
-      addLogEntry('assistant', errorMessage);
+     if ('speechSynthesis' in window) {
+  const speak = () => {
+    const utterance = new SpeechSynthesisUtterance(response);
+    utterance.rate = 1.3;
+    utterance.pitch = 1.0;
+    utterance.volume = 1;
+    utterance.lang = "en-US";
+
+    // Wait for voices to be loaded (especially on mobile)
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      utterance.voice = voices.find(v => v.lang === 'en-US') || voices[0];
+      speechSynthesis.speak(utterance);
+    } else {
+      // Retry after delay — required on some mobile devices
+      setTimeout(speak, 200);
     }
   };
+
+  // Cancel any ongoing speech (if any)
+  window.speechSynthesis.cancel();
+  speak();
+}
+
 
   useEffect(() => {
     const welcomeMessage = "IDIOT system initialized. How can I assist you today?";
@@ -77,6 +88,10 @@ utterance.lang = "en-US"; // English (US) voice
           </p>
         </div>
 
+
+ {/* Command Log */}
+        <CommandLog entries={commandLog} />
+
         {/* Command Input */}
         <div className="mb-8">
           <CommandInput
@@ -86,8 +101,7 @@ utterance.lang = "en-US"; // English (US) voice
           />
         </div>
 
-        {/* Command Log */}
-        <CommandLog entries={commandLog} />
+       
       </div>
 
       {/* Footer */}
