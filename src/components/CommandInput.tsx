@@ -13,6 +13,17 @@ export const CommandInput = ({ onCommand, isListening, setIsListening }: Command
   const [inputValue, setInputValue] = useState('');
   const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (inputValue.trim()) {
+    setIsProcessing(true);
+    await onCommand(inputValue.trim());
+    setInputValue('');
+    setIsProcessing(false);
+  }
+};
 
   useEffect(() => {
     // Check if speech recognition is supported
