@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Mic, MicOff, Send } from 'lucide-react';
 
 interface CommandInputProps {
-  onCommand: (command: string) => void;
+  onCommand: (command: string) => Promise<void>; // Updated to async
   isListening: boolean;
   setIsListening: (listening: boolean) => void;
 }
@@ -12,18 +12,8 @@ interface CommandInputProps {
 export const CommandInput = ({ onCommand, isListening, setIsListening }: CommandInputProps) => {
   const [inputValue, setInputValue] = useState('');
   const [speechSupported, setSpeechSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (inputValue.trim()) {
-    setIsProcessing(true);
-    await onCommand(inputValue.trim());
-    setInputValue('');
-    setIsProcessing(false);
-  }
-};
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -36,34 +26,38 @@ const handleSubmit = async (e: React.FormEvent) => {
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
-  const transcript = event.results[0][0].transcript;
-  setInputValue('');
-  onCommand(transcript.trim()); // 🔥 Execute directly
-  setIsListening(false);
-};
-
+      recognitionRef.current.onresult = async (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue('');
+        setIsProcessing(true);
+        await onCommand(transcript.trim());
+        setIsProcessing(false);
+        setIsListening(false);
+      };
 
       recognitionRef.current.onerror = () => {
         setIsListening(false);
+        setIsProcessing(false);
       };
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
     }
-  }, [setIsListening]);
+  }, [setIsListening, onCommand]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      onCommand(inputValue.trim());
+      setIsProcessing(true);
+      await onCommand(inputValue.trim());
       setInputValue('');
+      setIsProcessing(false);
     }
   };
 
   const toggleListening = () => {
-    if (!speechSupported) return;
+    if (!speechSupported || isProcessing) return;
 
     if (isListening) {
       recognitionRef.current?.stop();
@@ -80,10 +74,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="flex-1 relative">
           <Input
             type="text"
-            placeholder="Enter command or use voice input..."
+            placeholder={isProcessing ? "Processing..." : "Enter command or use voice input..."}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="pr-12 bg-card border-border focus:border-primary focus:ring-primary transition-all duration-300"
+            disabled={isProcessing}
+            className="pr-12 bg-card border-border focus:border-primary focus:ring-primary transition-all duration-300 disabled:opacity-70"
           />
           {speechSupported && (
             <Button
@@ -91,11 +86,12 @@ const handleSubmit = async (e: React.FormEvent) => {
               variant="ghost"
               size="sm"
               onClick={toggleListening}
+              disabled={isProcessing}
               className={`absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 ${
                 isListening 
                   ? 'text-destructive animate-pulse-glow' 
                   : 'text-muted-foreground hover:text-primary'
-              }`}
+              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isListening ? <MicOff size={16} /> : <Mic size={16} />}
             </Button>
@@ -103,10 +99,16 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
         <Button 
           type="submit" 
-          disabled={!inputValue.trim()}
-          className="bg-primary hover:bg-primary-glow text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={!inputValue.trim() || isProcessing}
+          className={`bg-primary hover:bg-primary-glow text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 ${
+            isProcessing ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
         >
-          <Send size={16} />
+          {isProcessing ? (
+            <span className="animate-pulse">...</span>
+          ) : (
+            <Send size={16} />
+          )}
         </Button>
       </form>
       

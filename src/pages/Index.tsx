@@ -133,7 +133,7 @@ const Index = () => {
       <div className="relative z-10 container mx-auto px-4 pt-8 pb-12 max-w-5xl">
         <div className="text-center mb-8">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2 animate-pulse-slow">
-            J.A.R.V.I.S
+            I.D.I.O.T
           </h1>
           <p className="text-muted-foreground text-lg italic">
            I Don’t Obey Orders Instantly Or Thoughtlessly.
