@@ -27,35 +27,39 @@ const Index = () => {
   };
 
   const handleCommand = async (command: string) => {
-    addLogEntry('user', command);
+  addLogEntry('user', command);
 
-    try {
-      const response = await CommandProcessor.processCommand(command);
-      addLogEntry('assistant', response);
+  try {
+    const response = await CommandProcessor.processCommand(command);
+    addLogEntry('assistant', response);
 
-     if ('speechSynthesis' in window) {
-  const speak = () => {
-    const utterance = new SpeechSynthesisUtterance(response);
-    utterance.rate = 1.3;
-    utterance.pitch = 1.0;
-    utterance.volume = 1;
-    utterance.lang = "en-US";
+    if ('speechSynthesis' in window) {
+      const speak = () => {
+        const utterance = new SpeechSynthesisUtterance(response);
+        utterance.rate = 1.3;
+        utterance.pitch = 1.0;
+        utterance.volume = 1;
+        utterance.lang = "en-US";
 
-    // Wait for voices to be loaded (especially on mobile)
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      utterance.voice = voices.find(v => v.lang === 'en-US') || voices[0];
-      speechSynthesis.speak(utterance);
-    } else {
-      // Retry after delay — required on some mobile devices
-      setTimeout(speak, 200);
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          utterance.voice = voices.find(v => v.lang === 'en-US') || voices[0];
+          speechSynthesis.speak(utterance);
+        } else {
+          setTimeout(speak, 200);
+        }
+      };
+
+      window.speechSynthesis.cancel();
+      speak();
     }
-  };
 
-  // Cancel any ongoing speech (if any)
-  window.speechSynthesis.cancel();
-  speak();
-}
+  } catch (error) {
+    const errorMessage = "I encountered an error processing that command.";
+    addLogEntry('assistant', errorMessage);
+  }
+};
+
 
 
   useEffect(() => {
