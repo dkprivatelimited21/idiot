@@ -1,5 +1,5 @@
 // src/core/MemoryBrain.ts
-class MemoryBrain {
+export class MemoryBrain {
   private knowledge: Map<string, { response: string; confidence: number }>;
   private conversations: string[];
   private patterns: Map<string, string[]>;
@@ -73,25 +73,7 @@ class MemoryBrain {
     return null;
   }
 
-  private saveToLocalStorage(): void {
-    localStorage.setItem('jarvisMemory', JSON.stringify({
-      knowledge: Array.from(this.knowledge.entries()),
-      conversations: this.conversations,
-      patterns: Array.from(this.patterns.entries())
-    }));
-  }
-
-  private loadFromLocalStorage(): void {
-    const saved = localStorage.getItem('jarvisMemory');
-    if (saved) {
-      const data = JSON.parse(saved);
-      this.knowledge = new Map(data.knowledge);
-      this.conversations = data.conversations;
-      this.patterns = new Map(data.patterns);
-    }
-  }
-}
- public findSimilarQuestions(input: string): string[] {
+  public findSimilarQuestions(input: string): string[] {
     const inputWords = new Set(input.toLowerCase().split(/\s+/));
     const similar: string[] = [];
     
@@ -109,5 +91,23 @@ class MemoryBrain {
   public autoGenerateResponses(input: string): string[] {
     const similar = this.findSimilarQuestions(input);
     return similar.map(q => this.knowledge.get(q)!.response);
+  }
+
+  private saveToLocalStorage(): void {
+    localStorage.setItem('jarvisMemory', JSON.stringify({
+      knowledge: Array.from(this.knowledge.entries()),
+      conversations: this.conversations,
+      patterns: Array.from(this.patterns.entries())
+    }));
+  }
+
+  private loadFromLocalStorage(): void {
+    const saved = localStorage.getItem('jarvisMemory');
+    if (saved) {
+      const data = JSON.parse(saved);
+      this.knowledge = new Map(data.knowledge);
+      this.conversations = data.conversations;
+      this.patterns = new Map(data.patterns);
+    }
   }
 }
